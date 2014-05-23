@@ -20,17 +20,22 @@ class Error_Log
 	private $logTypes = array('warning', 'notice', 'error', 'fatal');
 
 	/**
+	 * @var string
+	 */
+	private $logFileName = '';
+
+	/**
 	 * If you want to log to a specific place pass in the log file, if not the class will work out where to log the files
 	 *
-	 * @param null $logFile
+	 * @param null $logFileName
 	 *
 	 * @throws Exception
 	 */
-	public function __construct( $logFile = NULL )
+	public function __construct( $logFileName = NULL )
 	{
 		$this->set_default_log_directory();
 
-		$this->open_log_file( $logFile );
+		$this->logFileName = $logFileName;
 	}
 
 	/**
@@ -50,16 +55,23 @@ class Error_Log
 	 * @return bool
 	 * @throws Exception
 	 */
-	public function log( $message, $type = 'warning' )
+	public function log( $message, $type = 'error' )
 	{
-		if(!$this->logFile)
-		{
-			throw new Exception('Log file can not be found.');
-		}
-
 		if(!is_string($message))
 		{
 			throw new Exception('Message must be a string.');
+		}
+
+		if(empty($message))
+		{
+			throw new Exception('Message can not be empty.');
+		}
+
+		$this->open_log_file( );
+
+		if(!$this->logFile)
+		{
+			throw new Exception('Log file can not be found.');
 		}
 
 		if(!in_array(strtolower($type), $this->logTypes))
@@ -108,20 +120,18 @@ class Error_Log
 	/**
 	 * Open a new log file
 	 *
-	 * @param $logFile
-	 *
 	 * @throws Exception
 	 */
-	private function open_log_file( $logFile )
+	private function open_log_file(  )
 	{
 		$this->close_log_file();
 
-		if($logFile === NULL)
+		if($this->logFileName === NULL)
 		{
-			$logFile = $this->logDirectory . '/' . date('Ymd') . '-log.txt';
+			$this->logFileName = $this->logDirectory . '/' . date('Ymd') . '-log.txt';
 		}
 
-		$this->logFile = @fopen($logFile,"a");
+		$this->logFile = @fopen($this->logFileName,"a");
 
 		if(!$this->logFile)
 		{
